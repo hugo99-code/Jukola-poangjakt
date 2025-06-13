@@ -1,9 +1,10 @@
 from dotenv import load_dotenv
 load_dotenv()
+import os  # Viktigt att detta importeras före os-användning
+print("📂 Current working directory:", os.getcwd())
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-import os  # Viktigt att detta importeras före os-användning
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Du kan ersätta med en säkrare nyckel i en riktig miljö
@@ -11,17 +12,18 @@ app.secret_key = 'supersecretkey'  # Du kan ersätta med en säkrare nyckel i en
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+print("▶ DATABASE_URL =", database_url)
 db = SQLAlchemy(app)
 
 # --- MODELLER ---
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.Text, nullable=False)
     total_points = db.Column(db.Integer, default=0)
 
 class Challenge(db.Model):
@@ -39,18 +41,22 @@ class UserChallenge(db.Model):
 def index():
     return redirect(url_for('login'))
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form['name']
-        password = generate_password_hash(request.form['password'])
-        if User.query.filter_by(name=name).first():
-            return render_template('register.html', error='Användarnamnet är redan taget.')
-        user = User(name=name, password_hash=password)
-        db.session.add(user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        try:
+            name = request.form['name']
+            password = generate_password_hash(request.form['password'])
+            if User.query.filter_by(name=name).first():
+                return render_template('register.html', error='Användarnamnet är redan taget.')
+            user = User(name=name, password_hash=password)
+            db.session.add(user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        except Exception as e:
+            print("❌ Fel vid registrering:", e)
+            return render_template('register.html', error='Något gick fel. Se loggen.')
+
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
