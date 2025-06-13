@@ -1,10 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+import os  # Viktigt att detta importeras före os-användning
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jukola.db'
+app.secret_key = 'supersecretkey'  # Du kan ersätta med en säkrare nyckel i en riktig miljö
+
+# Läs in databas-URL från Render (eller .env vid lokal körning)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -159,6 +163,9 @@ def reset_password(user_id):
         flash('Lösenordet har uppdaterats!')
         return redirect(url_for('admin'))
     return render_template('reset_password.html', user=user)
+
+with app.app_context():
+    db.create_all()
 
 # --- INIT ---
 if __name__ == '__main__':
