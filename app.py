@@ -6,8 +6,10 @@ import os  # Viktigt att detta importeras före os-användning
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Du kan ersätta med en säkrare nyckel i en riktig miljö
 
-# Läs in databas-URL från Render (eller .env vid lokal körning)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
