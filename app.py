@@ -174,11 +174,10 @@ def reset_password(user_id):
         return redirect(url_for('admin'))
     return render_template('reset_password.html', user=user)
 
-with app.app_context():
-    db.create_all()
-
-# --- INIT ---
-if __name__ == '__main__':
+if os.getenv("FLASK_ENV") != "production":
     with app.app_context():
         db.create_all()
-    app.run(debug=True)
+
+# --- INIT ---
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
