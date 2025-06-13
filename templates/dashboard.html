@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jukolaspelet – Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f8f8f8;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h2 {
+      margin-top: 40px;
+      border-bottom: 2px solid #ccc;
+    }
+    .challenge {
+      display: flex;
+      align-items: center;
+      padding: 6px 0;
+    }
+    .challenge span.symbol {
+      cursor: pointer;
+      font-size: 20px;
+      margin-right: 12px;
+      width: 25px;
+    }
+    .challenge .done {
+      text-decoration: line-through;
+      color: #555;
+    }
+    .leaderboard {
+      margin-top: 50px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .leaderboard h3 {
+      margin-top: 0;
+    }
+    .leaderboard ul {
+      padding-left: 20px;
+    }
+    .leaderboard li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Välkommen {{ user.name }}</h1>
+
+    {% for level in [1, 2, 3, 5, 10] %}
+      {% set section = challenges | selectattr("points", "equalto", level) | list %}
+      {% if section %}
+        <h2>{{ level }} Poäng</h2>
+        {% for challenge in section %}
+          <div class="challenge">
+            {% if challenge.id in completed_ids %}
+              <span class="symbol undo" data-id="{{ challenge.id }}">❌</span>
+              <span class="done">{{ challenge.title }}</span>
+            {% else %}
+              <span class="symbol check" data-id="{{ challenge.id }}">✔️</span>
+              <span>{{ challenge.title }}</span>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+
+    {% set negatives = challenges | selectattr("points", "lt", 0) | list %}
+    {% if negatives %}
+      <h2>Minuspoäng</h2>
+      {% for challenge in negatives %}
+        <div class="challenge">
+          {% if challenge.id in completed_ids %}
+            <span class="symbol undo" data-id="{{ challenge.id }}">❌</span>
+            <span class="done">{{ challenge.title }}</span>
+          {% else %}
+            <span class="symbol check" data-id="{{ challenge.id }}">✔️</span>
+            <span>{{ challenge.title }}</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="leaderboard">
+      <h3>Topplista</h3>
+      <ol>
+        {% for player in leaderboard|sort(attribute='total_points', reverse=True) %}
+          <li>{{ player.name }} – {{ player.total_points }} poäng</li>
+        {% endfor %}
+      </ol>
+    </div>
+
+    <br>
+    <a href="{{ url_for('logout') }}">Logga ut</a>
+  </div>
+    <script>
+    document.querySelectorAll('.check').forEach(el => {
+        el.addEventListener('click', function () {
+        const id = this.dataset.id;
+        fetch(`/check_challenge/${id}`, { method: 'POST' })
+            .then(() => location.reload());
+        });
+    });
+
+    document.querySelectorAll('.undo').forEach(el => {
+        el.addEventListener('click', function () {
+        const id = this.dataset.id;
+        fetch(`/uncheck_challenge/${id}`, { method: 'POST' })
+            .then(() => location.reload());
+        });
+    });
+    </script>
+</body>
+</html>

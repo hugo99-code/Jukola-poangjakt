@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Registrera dig</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #f8f8f8;
+      margin: 0;
+    }
+    .register-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0 16px;
+      box-sizing: border-box;
+    }
+    input[type="submit"] {
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+    }
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+    }
+    p {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-box">
+    <h2>Registrera dig</h2>
+    {% if error %}
+      <p>{{ error }}</p>
+    {% endif %}
+    <form method="post">
+      Namn:
+      <input type="text" name="name" value="{{ request.form.name or '' }}">
+      Lösenord:
+      <input type="password" name="password">
+      <input type="submit" value="Registrera">
+    </form>
+    <a href="{{ url_for('login') }}">Tillbaka till inloggning</a>
+  </div>
+</body>
+</html>
